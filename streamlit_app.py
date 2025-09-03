@@ -2,7 +2,7 @@ import streamlit as st
 import numpy as np
 import math
 import plotly.graph_objects as go
-
+import pandas as pd
 
 # ---------------- geometry helpers ----------------
 def circle_intersections(p0, r0, p1, r1):
@@ -23,16 +23,13 @@ def circle_intersections(p0, r0, p1, r1):
     ry = dx * (h / d)
     return [(xm + rx, ym + ry), (xm - rx, ym - ry)]
 
-
 def get_coords_from_y(init, l, angle_deg):
     rad = math.radians(angle_deg)
     return init[0] - l * math.sin(rad), init[1] + l * math.cos(rad)
 
-
 def get_coords_x_frame(init, l, angle_deg):
     rad = math.radians(angle_deg)
     return init[0] + l * math.cos(rad), init[1] - l * math.sin(rad)
-
 
 def suspension_positions(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist):
     LCA_inner = np.array([0.0, 0.0])
@@ -43,7 +40,6 @@ def suspension_positions(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist)
         return None
     UCA_outer = np.array(max(sols, key=lambda p: p[1]))
     return LCA_inner, UCA_inner, LCA_outer, UCA_outer
-
 
 def tie_rod_deviation(inner_xy, t_on_knuckle, l_lca, l_uca,
                       inner_dist, ang_deg, outer_dist, offset_dist=0,
@@ -65,20 +61,17 @@ def tie_rod_deviation(inner_xy, t_on_knuckle, l_lca, l_uca,
     L0 = lengths[np.argmin(np.abs(np.array(phis_ok)))]
     return np.array(phis_ok), lengths - L0
 
-
 # ---------------- plotting helpers ----------------
 def suspension_plotly(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist,
                       inner_x, inner_y, t_pickup, offset_dist):
     pos = suspension_positions(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist)
     if pos is None:
         return go.Figure()
-
     LCA_in, UCA_in, LCA_out, UCA_out = pos
     vec = UCA_out - LCA_out
     vec_perp = np.array([-vec[1], vec[0]]) / np.linalg.norm(vec)
     outer = LCA_out + t_pickup * vec + offset_dist * vec_perp
     inner = np.array([inner_x, inner_y])
-
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=[LCA_in[0], LCA_out[0]], y=[LCA_in[1], LCA_out[1]],
                              mode="lines+markers", name="LCA"))
@@ -88,7 +81,6 @@ def suspension_plotly(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist,
                              mode="lines+markers", name="Knuckle"))
     fig.add_trace(go.Scatter(x=[inner[0], outer[0]], y=[inner[1], outer[1]],
                              mode="lines+markers", name="Tie-Rod"))
-
     fig.update_layout(
         title=f"Suspension Geometry at φ={phi_deg:.1f}°",
         xaxis=dict(range=[-100, 200], scaleanchor="y", showgrid=False, zeroline=False),
@@ -98,7 +90,6 @@ def suspension_plotly(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist,
     )
     return fig
 
-
 def wheel_travel(phi_deg_range, l_lca, l_uca, inner_dist, ang_deg, outer_dist):
     travels = []
     for phi in phi_deg_range:
@@ -106,29 +97,8 @@ def wheel_travel(phi_deg_range, l_lca, l_uca, inner_dist, ang_deg, outer_dist):
         if pos is None:
             continue
         _, _, _, UCA_out = pos
-        travels.append(UCA_out[1])  # Y-axis travel
+        travels.append(UCA_out[1])
     return phi_deg_range[:len(travels)], travels
-
-
-def deviation_plotly(inner_x, inner_y, t_pickup, l_lca, l_uca, inner_dist,
-                     ang_deg, outer_dist, offset_dist):
-    phi_vals, deviations = tie_rod_deviation(
-        (inner_x, inner_y), t_pickup,
-        l_lca, l_uca, inner_dist, ang_deg,
-        outer_dist, offset_dist
-    )
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(x=phi_vals, y=deviations, mode="lines", name="Δ Length"))
-    fig.add_hline(y=0, line=dict(color="black", dash="dash"))
-    fig.update_layout(
-        title="Tie-Rod Length Deviation vs LCA Angle",
-        xaxis_title="LCA angle φ [deg]",
-        yaxis_title="Δ Length [mm]",
-        margin=dict(l=10, r=10, t=40, b=10),
-        height=400
-    )
-    return fig
-
 
 # ---------------- Streamlit UI ----------------
 st.set_page_config(page_title="Bump Steer Visualizer", layout="wide")
@@ -151,10 +121,10 @@ with st.sidebar:
     st.header("Suspension Motion")
     phi_deg = st.slider("Current LCA angle φ [deg]", -20.0, 20.0, 0.0, 0.5)
 
-
 # ---------------- Layout with columns ----------------
 col1, col2 = st.columns(2)
 
+# Column 1: Suspension diagram
 with col1:
     st.plotly_chart(
         suspension_plotly(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist,
@@ -162,8 +132,8 @@ with col1:
         use_container_width=True
     )
 
+# Column 2: Tie-Rod deviation + markers + table
 with col2:
-    # Compute tie-rod deviation
     phi_vals, deviations = tie_rod_deviation(
         inner_xy=(inner_x, inner_y),
         t_on_knuckle=t_pickup,
@@ -174,32 +144,69 @@ with col2:
         outer_dist=outer_dist,
         offset_dist=offset_dist
     )
+    max_idx = np.argmax(np.abs(deviations))
+    min_idx = np.argmin(deviations)
 
-    max_dev_idx = np.argmax(np.abs(deviations))
-
-    # Create enhanced deviation plot with max deviation marker
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=phi_vals,
-        y=deviations,
-        mode="lines",
-        name="Δ Tie-Rod Length"
-    ))
-    fig.add_trace(go.Scatter(
-        x=[phi_vals[max_dev_idx]],
-        y=[deviations[max_dev_idx]],
-        mode="markers+text",
-        text=["Max Deviation"],
-        textposition="top right",
+    # Deviation plot
+    fig_dev = go.Figure()
+    fig_dev.add_trace(go.Scatter(x=phi_vals, y=deviations, mode="lines", name="Δ Tie-Rod"))
+    fig_dev.add_trace(go.Scatter(
+        x=[phi_vals[max_idx]], y=[deviations[max_idx]],
+        mode="markers+text", text=["Max"], textposition="top right",
         marker=dict(color="red", size=10)
     ))
-    fig.add_hline(y=0, line=dict(color="black", dash="dash"))
-    fig.update_layout(
+    fig_dev.add_trace(go.Scatter(
+        x=[phi_vals[min_idx]], y=[deviations[min_idx]],
+        mode="markers+text", text=["Min"], textposition="bottom right",
+        marker=dict(color="blue", size=10)
+    ))
+    fig_dev.add_hline(y=0, line=dict(color="black", dash="dash"))
+    fig_dev.update_layout(
         title="Tie-Rod Length Deviation vs LCA Angle",
         xaxis_title="LCA angle φ [deg]",
         yaxis_title="Δ Length [mm]",
-        margin=dict(l=10, r=10, t=40, b=10),
         height=400
     )
+    st.plotly_chart(fig_dev, use_container_width=True)
 
-    st.plotly_chart(fig, use_container_width=True)
+    # Display key metrics
+    st.write(f"**Max Deviation:** {deviations[max_idx]:.2f} mm at φ={phi_vals[max_idx]:.1f}°")
+    st.write(f"**Min Deviation:** {deviations[min_idx]:.2f} mm at φ={phi_vals[min_idx]:.1f}°")
+    st.write(f"**Total Δ Tie-Rod Variation:** {deviations[max_idx]-deviations[min_idx]:.2f} mm")
+
+    # Suspension geometry table at current φ
+    pos = suspension_positions(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist)
+    if pos is not None:
+        LCA_in, UCA_in, LCA_out, UCA_out = pos
+        vec = UCA_out - LCA_out
+        vec_perp = np.array([-vec[1], vec[0]]) / np.linalg.norm(vec)
+        outer = LCA_out + t_pickup * vec + offset_dist * vec_perp
+        inner = np.array([inner_x, inner_y])
+        tie_rod_vec = outer - inner
+        tie_rod_angle = np.degrees(np.arctan2(tie_rod_vec[1], tie_rod_vec[0]))
+
+        st.table({
+            "Parameter": ["LCA Length", "UCA Length", "Tie-Rod Length", "Tie-Rod Angle"],
+            "Value": [np.linalg.norm(LCA_out-LCA_in),
+                      np.linalg.norm(UCA_out-UCA_in),
+                      np.linalg.norm(tie_rod_vec),
+                      f"{tie_rod_angle:.1f}°"]
+        })
+
+# ---------------- Wheel travel vs deviation ----------------
+phi_range = np.linspace(-20, 20, 81)
+phi_vals_travel, travels = wheel_travel(phi_range, l_lca, l_uca, inner_dist, ang_deg, outer_dist)
+fig_travel = go.Figure()
+fig_travel.add_trace(go.Scatter(x=travels[:len(deviations)], y=deviations,
+                                mode="lines", name="Δ Tie-Rod"))
+fig_travel.update_layout(
+    title="Tie-Rod Deviation vs Wheel Travel",
+    xaxis_title="Vertical Wheel Travel [mm]",
+    yaxis_title="Δ Tie-Rod Length [mm]",
+    height=400
+)
+st.plotly_chart(fig_travel, use_container_width=True)
+
+# ---------------- Download CSV ----------------
+df = pd.DataFrame({"φ [deg]": phi_vals, "Δ Tie-Rod [mm]": deviations})
+st.download_button("Download Tie-Rod Deviation CSV", df.to_csv(index=False), "tie_rod_deviation.csv")
