@@ -147,11 +147,11 @@ with st.sidebar:
     inner_dist = st.number_input("Chassis pivot separation [mm]", 30.0, 100.0, 67.0, 1.0)
 
     st.header("Tie-Rod Inputs")
-    inner_x = st.slider("Inner pivot X [mm]", -50.0, 50.0, 4.6, 0.1)
-    inner_y = st.slider("Inner pivot Y [mm]", 0.0, 80.0, 19.3, 0.1)
+    inner_x = st.slider("Inner pivot X [mm]", -50.0, 50.0, 4.6, 0.01)
+    inner_y = st.slider("Inner pivot Y [mm]", 0.0, 80.0, 19.3, 0.01)
     t_pickup = st.slider("Pickup (0=LCA, 1=UCA)", 0.0, 1.0, 0.36, 0.01)
-    offset_dist = st.slider("Offset distance [mm]", -20.0, 20.0, -2.6, 0.1)
-    ang_deg = st.slider("Chassis pivot inclination [deg]", -20.0, 20.0, -9.8, 0.1)
+    offset_dist = st.slider("Offset distance [mm]", -20.0, 20.0, -2.6, 0.01)
+    ang_deg = st.slider("Chassis pivot inclination [deg]", -20.0, 20.0, -9.8, 0.01)
 
     st.header("Fix / Optimize Options")
     fix_inner = st.checkbox("Fix inner pivot X?", value=True)
