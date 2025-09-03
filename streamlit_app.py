@@ -65,7 +65,7 @@ def get_coords_from_y(init, l, angle_deg):
 
 def get_coords_x_frame(init, l, angle_deg):
     rad = math.radians(angle_deg)
-    return init[0] - l * math.cos(rad), init[1] - l * math.sin(rad)
+    return init[0] + l * math.cos(rad), init[1] - l * math.sin(rad)
 
 def suspension_positions(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist):
     """Return (LCA_outer, UCA_outer) for a given LCA angle in deg."""
