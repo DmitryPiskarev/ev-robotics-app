@@ -194,6 +194,17 @@ with st.sidebar:
             st.session_state.offset_dist = opt_offset
 
 
+if "inner_x" not in st.session_state:
+    st.session_state.inner_x = 4.6  # default value
+if "inner_y" not in st.session_state:
+    st.session_state.inner_y = 19.3
+if "t_pickup" not in st.session_state:
+    st.session_state.t_pickup = 0.36
+if "ang_deg" not in st.session_state:
+    st.session_state.ang_deg = -9.8
+if "offset_dist" not in st.session_state:
+    st.session_state.offset_dist = -2.6
+
 
 # Use values from session_state or current sliders
 inner_val = st.session_state.get("inner_x", st.session_state.inner_x)
