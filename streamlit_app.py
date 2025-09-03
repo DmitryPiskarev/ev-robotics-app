@@ -121,26 +121,7 @@ st.plotly_chart(
                       inner_x, inner_y, t_pickup, offset_dist),
     use_container_width=True
 )
-geom_fig, ax = plt.subplots(figsize=(6,6))
-pos = suspension_positions(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist)
-if pos:
-    LCA_in, UCA_in, LCA_out, UCA_out = pos
-    # draw arms
-    ax.plot([LCA_in[0], LCA_out[0]], [LCA_in[1], LCA_out[1]], 'o-', label="LCA")
-    ax.plot([UCA_in[0], UCA_out[0]], [UCA_in[1], UCA_out[1]], 'o-', label="UCA")
-    # draw knuckle
-    ax.plot([LCA_out[0], UCA_out[0]], [LCA_out[1], UCA_out[1]], 'o-', label="Knuckle")
-    # draw tie-rod
-    vec = UCA_out - LCA_out
-    vec_perp = np.array([-vec[1], vec[0]]) / np.linalg.norm(vec)
-    outer = LCA_out + t_pickup * vec + offset_dist * vec_perp
-    inner = np.array([inner_x, inner_y])
-    ax.plot([inner[0], outer[0]], [inner[1], outer[1]], 'o-', label="Tie-Rod")
-    ax.set_aspect('equal')
-    ax.grid(True)
-    ax.legend()
-    ax.set_title(f"Suspension Geometry at φ={phi_deg:.1f}°")
-st.pyplot(geom_fig)
+
 
 # ---------------- Deviation plot ----------------
 phi_vals, deviations = tie_rod_deviation((inner_x, inner_y), t_pickup, l_lca, l_uca, inner_dist, ang_deg, outer_dist, offset_dist)
