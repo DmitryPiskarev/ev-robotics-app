@@ -193,12 +193,6 @@ with st.sidebar:
             st.session_state.ang_deg = opt_ang_deg
             st.session_state.offset_dist = opt_offset
 
-    else:
-        # If not optimizing, use current slider values
-        opt_inner_x, opt_inner_y = inner_x, inner_y
-        opt_t_pickup = t_pickup
-        opt_ang_deg = ang_deg
-        opt_offset = offset_dist
 
 
 # Use values from session_state or current sliders
