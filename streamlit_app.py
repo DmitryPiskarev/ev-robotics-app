@@ -200,6 +200,14 @@ with st.sidebar:
         opt_ang_deg = ang_deg
         opt_offset = offset_dist
 
+
+# Use values from session_state or current sliders
+inner_val = st.session_state.get("inner_x", st.session_state.inner_x)
+inner_y_val = st.session_state.get("inner_y", st.session_state.inner_y)
+tie_pickup_val = st.session_state.get("t_pickup", st.session_state.t_pickup)
+ang_val = st.session_state.get("ang_deg", st.session_state.ang_deg)
+offset_val = st.session_state.get("offset_dist", st.session_state.offset_dist)
+
 # ---------------- Layout with columns ----------------
 col1, col2 = st.columns(2)
 
