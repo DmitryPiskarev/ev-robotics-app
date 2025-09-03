@@ -163,32 +163,43 @@ with col1:
     )
 
 with col2:
-    st.plotly_chart(
-        deviation_plotly(inner_x, inner_y, t_pickup, l_lca, l_uca,
-                         inner_dist, ang_deg, outer_dist, offset_dist),
-        use_container_width=True
+    # Compute tie-rod deviation
+    phi_vals, deviations = tie_rod_deviation(
+        inner_xy=(inner_x, inner_y),
+        t_on_knuckle=t_pickup,
+        l_lca=l_lca,
+        l_uca=l_uca,
+        inner_dist=inner_dist,
+        ang_deg=ang_deg,
+        outer_dist=outer_dist,
+        offset_dist=offset_dist
     )
 
+    max_dev_idx = np.argmax(np.abs(deviations))
 
-phi_vals, deviations = tie_rod_deviation(
-    inner_xy=(inner_x, inner_y),
-    t_on_knuckle=t_pickup,
-    l_lca=l_lca,
-    l_uca=l_uca,
-    inner_dist=inner_dist,
-    ang_deg=ang_deg,
-    outer_dist=outer_dist,
-    offset_dist=offset_dist
-)
+    # Create enhanced deviation plot with max deviation marker
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=phi_vals,
+        y=deviations,
+        mode="lines",
+        name="Δ Tie-Rod Length"
+    ))
+    fig.add_trace(go.Scatter(
+        x=[phi_vals[max_dev_idx]],
+        y=[deviations[max_dev_idx]],
+        mode="markers+text",
+        text=["Max Deviation"],
+        textposition="top right",
+        marker=dict(color="red", size=10)
+    ))
+    fig.add_hline(y=0, line=dict(color="black", dash="dash"))
+    fig.update_layout(
+        title="Tie-Rod Length Deviation vs LCA Angle",
+        xaxis_title="LCA angle φ [deg]",
+        yaxis_title="Δ Length [mm]",
+        margin=dict(l=10, r=10, t=40, b=10),
+        height=400
+    )
 
-max_dev_idx = np.argmax(np.abs(deviations))
-
-fig = go.Figure()
-fig.add_trace(go.Scatter(
-    x=[phi_vals[max_dev_idx]],
-    y=[deviations[max_dev_idx]],
-    mode="markers+text",
-    text=["Max Deviation"],
-    textposition="top right",
-    marker=dict(color="red", size=10)
-))
+    st.plotly_chart(fig, use_container_width=True)
