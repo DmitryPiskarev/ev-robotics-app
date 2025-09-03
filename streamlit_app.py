@@ -164,11 +164,11 @@ with st.sidebar:
     phi_deg = st.slider("Current LCA angle φ [deg]", -20.0, 20.0, 0.0, 0.5)
 
     if st.button("Auto-generate optimal configuration"):
-        inner_fixed_val = st.session_state.inner_x if fix_inner else None
-        inner_y_fixed_val = st.session_state.inner_y if fix_inner_y else None
-        tie_fixed_val = st.session_state.t_pickup if fix_tie else None
-        ang_fixed_val = st.session_state.ang_deg if fix_ang else None
-        offset_fixed_val = st.session_state.offset_dist if fix_offset else None
+        inner_fixed_val = inner_x if fix_inner else None
+        inner_y_fixed_val = inner_y if fix_inner_y else None
+        tie_fixed_val = t_pickup if fix_tie else None
+        ang_fixed_val = ang_deg if fix_ang else None
+        offset_fixed_val = offset_dist if fix_offset else None
 
         opt = optimize_suspension(l_lca, l_uca, outer_dist, inner_dist,
                                   inner_fixed_val, inner_y_fixed_val, tie_fixed_val,
@@ -180,39 +180,12 @@ with st.sidebar:
                    f"Chassis Inclination: {opt_ang_deg:.2f}\n"
                    f"Offset: {opt_offset:.2f}")
 
-        st.success(f"Optimized configuration:\n"
-                   f"Inner pivot: ({opt_inner_x:.2f}, {opt_inner_y:.2f})\n"
-                   f"Tie-Rod Pickup: {opt_t_pickup:.2f}\n"
-                   f"Chassis Inclination: {opt_ang_deg:.2f}\n"
-                   f"Offset: {opt_offset:.2f}")
-
-        if st.button("Apply optimized values to sliders"):
-            st.session_state.inner_x = opt_inner_x
-            st.session_state.inner_y = opt_inner_y
-            st.session_state.t_pickup = opt_t_pickup
-            st.session_state.ang_deg = opt_ang_deg
-            st.session_state.offset_dist = opt_offset
-
-
-if "inner_x" not in st.session_state:
-    st.session_state.inner_x = 4.6  # default value
-if "inner_y" not in st.session_state:
-    st.session_state.inner_y = 19.3
-if "t_pickup" not in st.session_state:
-    st.session_state.t_pickup = 0.36
-if "ang_deg" not in st.session_state:
-    st.session_state.ang_deg = -9.8
-if "offset_dist" not in st.session_state:
-    st.session_state.offset_dist = -2.6
-
-
-# Use values from session_state or current sliders
-
-opt_inner_x = st.session_state.get("inner_x", 4.6)
-opt_inner_y = st.session_state.get("inner_y", 19.3)
-opt_t_pickup = st.session_state.get("t_pickup", 0.36)
-opt_ang_deg = st.session_state.get("ang_deg", -9.8)
-opt_offset = st.session_state.get("offset_dist", -2.6)
+    else:
+        # If not optimizing, use current slider values
+        opt_inner_x, opt_inner_y = inner_x, inner_y
+        opt_t_pickup = t_pickup
+        opt_ang_deg = ang_deg
+        opt_offset = offset_dist
 
 # ---------------- Layout with columns ----------------
 col1, col2 = st.columns(2)
