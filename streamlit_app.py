@@ -211,6 +211,7 @@ inner_val = st.session_state.get("inner_x", st.session_state.inner_x)
 inner_y_val = st.session_state.get("inner_y", st.session_state.inner_y)
 tie_pickup_val = st.session_state.get("t_pickup", st.session_state.t_pickup)
 ang_val = st.session_state.get("ang_deg", st.session_state.ang_deg)
+opt_ang_deg = st.session_state.get("ang_deg", -9.8)
 offset_val = st.session_state.get("offset_dist", st.session_state.offset_dist)
 
 # ---------------- Layout with columns ----------------
