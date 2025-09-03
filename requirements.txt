@@ -1,5 +1,6 @@
 streamlit
 streamlit-pyvista
+stpyvista
 numpy
 matplotlib
 plotly
