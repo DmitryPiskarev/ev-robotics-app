@@ -170,7 +170,16 @@ with col2:
     )
 
 
-phi_vals, deviations = tie_rod_deviation(...)
+phi_vals, deviations = tie_rod_deviation(
+    inner_xy=(inner_x, inner_y),
+    t_on_knuckle=t_pickup,
+    l_lca=l_lca,
+    l_uca=l_uca,
+    inner_dist=inner_dist,
+    ang_deg=ang_deg,
+    outer_dist=outer_dist,
+    offset_dist=offset_dist
+)
 max_dev_idx = np.argmax(np.abs(deviations))
 fig.add_trace(go.Scatter(
     x=[phi_vals[max_dev_idx]],
