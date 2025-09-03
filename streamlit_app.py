@@ -164,11 +164,11 @@ with st.sidebar:
     phi_deg = st.slider("Current LCA angle φ [deg]", -20.0, 20.0, 0.0, 0.5)
 
     if st.button("Auto-generate optimal configuration"):
-        inner_fixed_val = inner_x if fix_inner else None
-        inner_y_fixed_val = inner_y if fix_inner_y else None
-        tie_fixed_val = t_pickup if fix_tie else None
-        ang_fixed_val = ang_deg if fix_ang else None
-        offset_fixed_val = offset_dist if fix_offset else None
+        inner_fixed_val = st.session_state.inner_x if fix_inner else None
+        inner_y_fixed_val = st.session_state.inner_y if fix_inner_y else None
+        tie_fixed_val = st.session_state.t_pickup if fix_tie else None
+        ang_fixed_val = st.session_state.ang_deg if fix_ang else None
+        offset_fixed_val = st.session_state.offset_dist if fix_offset else None
 
         opt = optimize_suspension(l_lca, l_uca, outer_dist, inner_dist,
                                   inner_fixed_val, inner_y_fixed_val, tie_fixed_val,
