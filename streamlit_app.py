@@ -180,7 +180,10 @@ phi_vals, deviations = tie_rod_deviation(
     outer_dist=outer_dist,
     offset_dist=offset_dist
 )
+
 max_dev_idx = np.argmax(np.abs(deviations))
+
+fig = go.Figure()
 fig.add_trace(go.Scatter(
     x=[phi_vals[max_dev_idx]],
     y=[deviations[max_dev_idx]],
