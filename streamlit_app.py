@@ -5,6 +5,7 @@ import plotly.graph_objects as go
 import pandas as pd
 from scipy.optimize import minimize
 
+
 # ---------------- geometry helpers ----------------
 def circle_intersections(p0, r0, p1, r1):
     x0, y0 = p0
@@ -23,13 +24,16 @@ def circle_intersections(p0, r0, p1, r1):
     ry = dx * (h / d)
     return [(xm + rx, ym + ry), (xm - rx, ym - ry)]
 
+
 def get_coords_from_y(init, l, angle_deg):
     rad = math.radians(angle_deg)
     return init[0] - l * math.sin(rad), init[1] + l * math.cos(rad)
 
+
 def get_coords_x_frame(init, l, angle_deg):
     rad = math.radians(angle_deg)
     return init[0] + l * math.cos(rad), init[1] - l * math.sin(rad)
+
 
 def suspension_positions(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist):
     LCA_inner = np.array([0.0, 0.0])
@@ -39,6 +43,7 @@ def suspension_positions(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist)
     if not sols: return None
     UCA_outer = np.array(max(sols, key=lambda p: p[1]))
     return LCA_inner, UCA_inner, LCA_outer, UCA_outer
+
 
 def tie_rod_deviation(inner_xy, t_on_knuckle, l_lca, l_uca,
                       inner_dist, ang_deg, outer_dist, offset_dist=0,
@@ -58,6 +63,7 @@ def tie_rod_deviation(inner_xy, t_on_knuckle, l_lca, l_uca,
     lengths = np.array(lengths)
     L0 = lengths[np.argmin(np.abs(np.array(phis_ok)))]
     return np.array(phis_ok), lengths - L0
+
 
 # ---------------- plotting helpers ----------------
 def suspension_plotly(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist,
@@ -81,8 +87,9 @@ def suspension_plotly(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist,
     fig.update_layout(title=f"Suspension Geometry at φ={phi_deg:.1f}°",
                       xaxis=dict(range=[-100, 200], scaleanchor="y", showgrid=False, zeroline=False),
                       yaxis=dict(range=[-50, 150], showgrid=False, zeroline=False),
-                      margin=dict(l=10,r=10,t=40,b=10), height=400)
+                      margin=dict(l=10, r=10, t=40, b=10), height=400)
     return fig
+
 
 def wheel_travel(phi_deg_range, l_lca, l_uca, inner_dist, ang_deg, outer_dist):
     travels = []
@@ -92,6 +99,7 @@ def wheel_travel(phi_deg_range, l_lca, l_uca, inner_dist, ang_deg, outer_dist):
         _, _, _, UCA_out = pos
         travels.append(UCA_out[1])
     return phi_deg_range[:len(travels)], travels
+
 
 # ---------------- multi-parameter optimizer ----------------
 def optimize_suspension(l_lca, l_uca, outer_dist, inner_dist,
@@ -135,6 +143,7 @@ def optimize_suspension(l_lca, l_uca, outer_dist, inner_dist,
     res = minimize(objective, x0, bounds=bounds, method='L-BFGS-B')
     return res.x
 
+
 # ---------------- Streamlit UI ----------------
 st.set_page_config(page_title="Bump Steer Optimizer", layout="wide")
 st.title("Bump Steer Calculator & Optimizer")
@@ -147,11 +156,11 @@ with st.sidebar:
     inner_dist = st.number_input("Chassis pivot separation [mm]", 30.0, 100.0, 67.0, 1.0)
 
     st.header("Tie-Rod Inputs")
-    inner_x = st.slider("Inner pivot X [mm]", -50.0, 50.0, 4.6, 0.01)
-    inner_y = st.slider("Inner pivot Y [mm]", 0.0, 80.0, 19.3, 0.01)
-    t_pickup = st.slider("Pickup (0=LCA, 1=UCA)", 0.0, 1.0, 0.36, 0.01)
-    offset_dist = st.slider("Offset distance [mm]", -20.0, 20.0, -2.6, 0.01)
-    ang_deg = st.slider("Chassis pivot inclination [deg]", -20.0, 20.0, -9.8, 0.01)
+    inner_x = st.number_input("Inner pivot X [mm]", -50.0, 50.0, 4.6, step=0.01, format="%.2f")
+    inner_y = st.number_input("Inner pivot Y [mm]", 0.0, 80.0, 19.3, step=0.01, format="%.2f")
+    t_pickup = st.number_input("Pickup (0=LCA, 1=UCA)", 0.0, 1.0, 0.36, step=0.01, format="%.2f")
+    offset_dist = st.number_input("Offset distance [mm]", -20.0, 20.0, -2.6, step=0.01, format="%.2f")
+    ang_deg = st.number_input("Chassis pivot inclination [deg]", -20.0, 20.0, -9.8, step=0.01, format="%.2f")
 
     st.header("Fix / Optimize Options")
     fix_inner = st.checkbox("Fix inner pivot X?", value=True)
