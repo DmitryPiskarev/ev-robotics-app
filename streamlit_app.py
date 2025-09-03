@@ -179,7 +179,6 @@ with st.sidebar:
                    f"Tie-Rod Pickup: {opt_t_pickup:.2f}\n"
                    f"Chassis Inclination: {opt_ang_deg:.2f}\n"
                    f"Offset: {opt_offset:.2f}")
-
     else:
         # If not optimizing, use current slider values
         opt_inner_x, opt_inner_y = inner_x, inner_y
@@ -190,38 +189,23 @@ with st.sidebar:
 # ---------------- Layout with columns ----------------
 col1, col2 = st.columns(2)
 
-# Apply optimized values button
-if st.button("Apply optimized values to sliders"):
-    st.session_state['inner_x'] = opt_inner_x
-    st.session_state['inner_y'] = opt_inner_y
-    st.session_state['t_pickup'] = opt_t_pickup
-    st.session_state['ang_deg'] = opt_ang_deg
-    st.session_state['offset_dist'] = opt_offset
-
-# Use session_state if available, otherwise optimized/current values
-inner_val = st.session_state.get('inner_x', opt_inner_x)
-inner_y_val = st.session_state.get('inner_y', opt_inner_y)
-tie_pickup_val = st.session_state.get('t_pickup', opt_t_pickup)
-ang_val = st.session_state.get('ang_deg', opt_ang_deg)
-offset_val = st.session_state.get('offset_dist', opt_offset)
-
 with col1:
     st.plotly_chart(
-        suspension_plotly(phi_deg, l_lca, l_uca, inner_dist, ang_val, outer_dist,
-                          inner_val, inner_y_val, tie_pickup_val, offset_val),
+        suspension_plotly(phi_deg, l_lca, l_uca, inner_dist, opt_ang_deg, outer_dist,
+                          opt_inner_x, opt_inner_y, opt_t_pickup, opt_offset),
         use_container_width=True
     )
 
 with col2:
     phi_vals, deviations = tie_rod_deviation(
-        inner_xy=(inner_val, inner_y_val),
-        t_on_knuckle=tie_pickup_val,
+        inner_xy=(opt_inner_x, opt_inner_y),
+        t_on_knuckle=opt_t_pickup,
         l_lca=l_lca,
         l_uca=l_uca,
         inner_dist=inner_dist,
-        ang_deg=ang_val,
+        ang_deg=opt_ang_deg,
         outer_dist=outer_dist,
-        offset_dist=offset_val
+        offset_dist=opt_offset
     )
 
     max_idx = np.argmax(np.abs(deviations))
@@ -246,13 +230,13 @@ with col2:
     st.write(f"**Min Deviation:** {deviations[min_idx]:.2f} mm at φ={phi_vals[min_idx]:.1f}°")
     st.write(f"**Total Δ Tie-Rod Variation:** {deviations[max_idx]-deviations[min_idx]:.2f} mm")
 
-    pos = suspension_positions(phi_deg, l_lca, l_uca, inner_dist, ang_val, outer_dist)
+    pos = suspension_positions(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist)
     if pos is not None:
         LCA_in, UCA_in, LCA_out, UCA_out = pos
         vec = UCA_out - LCA_out
         vec_perp = np.array([-vec[1], vec[0]]) / np.linalg.norm(vec)
-        outer = LCA_out + tie_pickup_val * vec + offset_val * vec_perp
-        inner = np.array([inner_val, inner_y_val])
+        outer = LCA_out + t_pickup * vec + offset_dist * vec_perp
+        inner = np.array([inner_x, inner_y])
         tie_rod_vec = outer - inner
         tie_rod_angle = np.degrees(np.arctan2(tie_rod_vec[1], tie_rod_vec[0]))
         st.table({
@@ -264,7 +248,7 @@ with col2:
         })
 
 phi_range = np.linspace(-20, 20, 81)
-phi_vals_travel, travels = wheel_travel(phi_range, l_lca, l_uca, inner_dist, ang_val, outer_dist)
+phi_vals_travel, travels = wheel_travel(phi_range, l_lca, l_uca, inner_dist, ang_deg, outer_dist)
 fig_travel = go.Figure()
 fig_travel.add_trace(go.Scatter(x=travels[:len(deviations)], y=deviations,
                                 mode="lines", name="Δ Tie-Rod"))
