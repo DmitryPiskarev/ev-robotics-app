@@ -1,7 +1,5 @@
 streamlit
-streamlit-pyvista
-stpyvista
 numpy
 matplotlib
 plotly
-pyvista
+p5

@@ -99,31 +99,6 @@ def suspension_plotly(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist,
     return fig
 
 
-import pyvista as pv
-
-
-def suspension_pyvista(phi_deg, l_lca, l_uca, inner_dist, ang_deg,
-                       outer_dist, inner_x, inner_y, t_pickup, offset_dist):
-    pos = suspension_positions(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist)
-    if pos is None:
-        return None
-
-    LCA_in, UCA_in, LCA_out, UCA_out = pos
-    vec = UCA_out - LCA_out
-    vec_perp = np.array([-vec[1], vec[0]]) / np.linalg.norm(vec)
-    outer = LCA_out + t_pickup * vec + offset_dist * vec_perp
-    inner = np.array([inner_x, inner_y])
-
-    plotter = pv.Plotter()
-    plotter.add_lines(np.array([LCA_in, LCA_out]), color="blue", width=3)
-    plotter.add_lines(np.array([UCA_in, UCA_out]), color="red", width=3)
-    plotter.add_lines(np.array([LCA_out, UCA_out]), color="green", width=3)
-    plotter.add_lines(np.array([inner, outer]), color="purple", width=3)
-    plotter.show_bounds(xlabel="X [mm]", ylabel="Y [mm]")
-    plotter.camera_position = "xy"  # lock to 2D view
-    return plotter
-
-
 def deviation_plotly(inner_x, inner_y, t_pickup, l_lca, l_uca, inner_dist,
                      ang_deg, outer_dist, offset_dist):
     phi_vals, deviations = tie_rod_deviation(
@@ -165,8 +140,8 @@ with st.sidebar:
     st.header("Suspension Motion")
     phi_deg = st.slider("Current LCA angle φ [deg]", -20.0, 20.0, 0.0, 0.5)
 
-
-from stpyvista import st_pyvista
+from p5 import Surface, background, stroke, line, fill, circle, scale, translate
+from PIL import Image
 # ---------------- Layout with columns ----------------
 col1, col2 = st.columns(2)
 
@@ -177,10 +152,62 @@ with col1:
         use_container_width=True
     )
 
-    plotter = suspension_pyvista(phi_deg, l_lca, l_uca, inner_dist, ang_deg,
-                                 outer_dist, inner_x, inner_y, t_pickup, offset_dist)
-    if plotter:
-        st_pyvista(plotter, height=400)  # embed PyVista plot
+    # Your suspension parameters
+    l_lca, l_uca, inner_dist, ang_deg, outer_dist = 87, 74, 67, -9.8, 72
+    phi_deg, inner_x, inner_y, t_pickup, offset_dist = 0, 4.6, 19.3, 0.36, -2.6
+
+    def suspension_positions(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist):
+        # Example placeholder function (replace with your actual logic)
+        LCA_in = np.array([0, 0])
+        UCA_in = np.array([0, l_uca])
+        LCA_out = np.array([l_lca, 0])
+        UCA_out = np.array([l_lca, l_uca])
+        return LCA_in, UCA_in, LCA_out, UCA_out
+
+    def draw_suspension():
+        # Create off-screen surface
+        surf = Surface((600, 400))
+        background(255)
+
+        translate(200, 200)
+        scale(1, -1)
+
+        pos = suspension_positions(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist)
+        if pos is None:
+            return None
+        LCA_in, UCA_in, LCA_out, UCA_out = pos
+        vec = UCA_out - LCA_out
+        vec_perp = np.array([-vec[1], vec[0]]) / np.linalg.norm(vec)
+        outer = LCA_out + t_pickup * vec + offset_dist * vec_perp
+        inner = np.array([inner_x, inner_y])
+
+        # draw arms
+        stroke(0)
+        line(LCA_in[0], LCA_in[1], LCA_out[0], LCA_out[1])
+        line(UCA_in[0], UCA_in[1], UCA_out[0], UCA_out[1])
+        line(LCA_out[0], LCA_out[1], UCA_out[0], UCA_out[1])
+        stroke(200, 0, 200)
+        line(inner[0], inner[1], outer[0], outer[1])
+
+        # joints
+        fill(0)
+        circle((LCA_in[0], LCA_in[1]), 6)
+        circle((UCA_in[0], UCA_in[1]), 6)
+        circle((LCA_out[0], LCA_out[1]), 6)
+        circle((UCA_out[0], UCA_out[1]), 6)
+        circle((inner[0], inner[1]), 6)
+        circle((outer[0], outer[1]), 6)
+
+        # Convert to image for Streamlit
+        img = Image.fromarray(surf.get_pixels())
+        return img
+
+    # Streamlit app
+    st.title("Suspension Visualization (p5)")
+
+    img = draw_suspension()
+    if img:
+        st.image(img)
 
 with col2:
     st.plotly_chart(
