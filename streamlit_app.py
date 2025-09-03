@@ -201,10 +201,11 @@ with st.sidebar:
 # ---------------- Layout with columns ----------------
 col1, col2 = st.columns(2)
 
+
 with col1:
     st.plotly_chart(
         suspension_plotly(phi_deg, l_lca, l_uca, inner_dist, opt_ang_deg, outer_dist,
-                          opt_inner_x, opt_inner_y, opt_t_pickup, opt_offset),
+                          opt_inner_x, opt_inner_y, opt_t_pickup, opt_offset, height=600),
         use_container_width=True
     )
 
