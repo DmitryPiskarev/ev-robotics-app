@@ -207,12 +207,12 @@ if "offset_dist" not in st.session_state:
 
 
 # Use values from session_state or current sliders
-inner_val = st.session_state.get("inner_x", st.session_state.inner_x)
-inner_y_val = st.session_state.get("inner_y", st.session_state.inner_y)
-tie_pickup_val = st.session_state.get("t_pickup", st.session_state.t_pickup)
-ang_val = st.session_state.get("ang_deg", st.session_state.ang_deg)
+
+opt_inner_x = st.session_state.get("inner_x", 4.6)
+opt_inner_y = st.session_state.get("inner_y", 19.3)
+opt_t_pickup = st.session_state.get("t_pickup", 0.36)
 opt_ang_deg = st.session_state.get("ang_deg", -9.8)
-offset_val = st.session_state.get("offset_dist", st.session_state.offset_dist)
+opt_offset = st.session_state.get("offset_dist", -2.6)
 
 # ---------------- Layout with columns ----------------
 col1, col2 = st.columns(2)
