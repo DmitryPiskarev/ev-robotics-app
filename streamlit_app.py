@@ -98,7 +98,7 @@ def tie_rod_deviation(inner_xy, t_on_knuckle, l_lca, l_uca, inner_dist, ang_deg,
 
 # ---------------- Streamlit UI ----------------
 st.set_page_config(page_title="Bump Steer Visualizer", layout="wide")
-st.title("🚗 Bump Steer Calculator & Visualizer")
+st.title("Bump Steer Calculator & Visualizer")
 
 with st.sidebar:
     st.header("Geometry Inputs")
@@ -124,12 +124,23 @@ st.plotly_chart(
 
 
 # ---------------- Deviation plot ----------------
-phi_vals, deviations = tie_rod_deviation((inner_x, inner_y), t_pickup, l_lca, l_uca, inner_dist, ang_deg, outer_dist, offset_dist)
-dev_fig, ax2 = plt.subplots(figsize=(7,4))
-ax2.plot(phi_vals, deviations, lw=2)
-ax2.axhline(0, color='k', ls='--')
-ax2.set_title("Tie-Rod Length Deviation vs LCA Angle")
-ax2.set_xlabel("LCA angle φ [deg]")
-ax2.set_ylabel("Δ Length [mm]")
-ax2.grid(True)
-st.pyplot(dev_fig)
+phi_vals, deviations = tie_rod_deviation(
+    (inner_x, inner_y),
+    t_pickup,
+    l_lca, l_uca,
+    inner_dist, ang_deg,
+    outer_dist,
+    offset_dist
+)
+
+fig, ax = plt.subplots(figsize=(7, 4))
+ax.plot(phi_vals, deviations, lw=2, color="tab:blue")
+ax.axhline(0, color="black", ls="--", lw=1)
+ax.set_title("Tie-Rod Length Deviation vs LCA Angle", fontsize=12)
+ax.set_xlabel("LCA angle φ [deg]", fontsize=10)
+ax.set_ylabel("Δ Length [mm]", fontsize=10)
+ax.tick_params(axis="both", labelsize=9)
+ax.grid(True, alpha=0.3)
+
+st.pyplot(fig)
+
