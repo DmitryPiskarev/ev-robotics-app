@@ -179,6 +179,20 @@ with st.sidebar:
                    f"Tie-Rod Pickup: {opt_t_pickup:.2f}\n"
                    f"Chassis Inclination: {opt_ang_deg:.2f}\n"
                    f"Offset: {opt_offset:.2f}")
+
+        st.success(f"Optimized configuration:\n"
+                   f"Inner pivot: ({opt_inner_x:.2f}, {opt_inner_y:.2f})\n"
+                   f"Tie-Rod Pickup: {opt_t_pickup:.2f}\n"
+                   f"Chassis Inclination: {opt_ang_deg:.2f}\n"
+                   f"Offset: {opt_offset:.2f}")
+
+        if st.button("Apply optimized values to sliders"):
+            st.session_state.inner_x = opt_inner_x
+            st.session_state.inner_y = opt_inner_y
+            st.session_state.t_pickup = opt_t_pickup
+            st.session_state.ang_deg = opt_ang_deg
+            st.session_state.offset_dist = opt_offset
+
     else:
         # If not optimizing, use current slider values
         opt_inner_x, opt_inner_y = inner_x, inner_y
