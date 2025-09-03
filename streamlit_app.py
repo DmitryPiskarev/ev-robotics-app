@@ -85,8 +85,8 @@ def suspension_plotly(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist,
 
     fig.update_layout(
         title=f"Suspension Geometry at φ={phi_deg:.1f}°",
-        xaxis=dict(scaleanchor="y", showgrid=False, zeroline=False, autorange="reversed"),
-        yaxis=dict(showgrid=False, zeroline=False),
+        xaxis=dict(range=[-100, 200], scaleanchor="y", showgrid=False, zeroline=False),
+        yaxis=dict(range=[-50, 150], showgrid=False, zeroline=False),
         margin=dict(l=10, r=10, t=40, b=10),
         height=400
     )
