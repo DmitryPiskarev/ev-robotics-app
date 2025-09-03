@@ -99,6 +99,31 @@ def suspension_plotly(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist,
     return fig
 
 
+import pyvista as pv
+
+
+def suspension_pyvista(phi_deg, l_lca, l_uca, inner_dist, ang_deg,
+                       outer_dist, inner_x, inner_y, t_pickup, offset_dist):
+    pos = suspension_positions(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist)
+    if pos is None:
+        return None
+
+    LCA_in, UCA_in, LCA_out, UCA_out = pos
+    vec = UCA_out - LCA_out
+    vec_perp = np.array([-vec[1], vec[0]]) / np.linalg.norm(vec)
+    outer = LCA_out + t_pickup * vec + offset_dist * vec_perp
+    inner = np.array([inner_x, inner_y])
+
+    plotter = pv.Plotter()
+    plotter.add_lines(np.array([LCA_in, LCA_out]), color="blue", width=3)
+    plotter.add_lines(np.array([UCA_in, UCA_out]), color="red", width=3)
+    plotter.add_lines(np.array([LCA_out, UCA_out]), color="green", width=3)
+    plotter.add_lines(np.array([inner, outer]), color="purple", width=3)
+    plotter.show_bounds(xlabel="X [mm]", ylabel="Y [mm]")
+    plotter.camera_position = "xy"  # lock to 2D view
+    return plotter
+
+
 def deviation_plotly(inner_x, inner_y, t_pickup, l_lca, l_uca, inner_dist,
                      ang_deg, outer_dist, offset_dist):
     phi_vals, deviations = tie_rod_deviation(
@@ -140,6 +165,8 @@ with st.sidebar:
     st.header("Suspension Motion")
     phi_deg = st.slider("Current LCA angle φ [deg]", -20.0, 20.0, 0.0, 0.5)
 
+
+from stpyvista import st_pyvista
 # ---------------- Layout with columns ----------------
 col1, col2 = st.columns(2)
 
@@ -149,6 +176,11 @@ with col1:
                           inner_x, inner_y, t_pickup, offset_dist),
         use_container_width=True
     )
+
+    plotter = suspension_pyvista(phi_deg, l_lca, l_uca, inner_dist, ang_deg,
+                                 outer_dist, inner_x, inner_y, t_pickup, offset_dist)
+    if plotter:
+        st_pyvista(plotter, height=400)  # embed PyVista plot
 
 with col2:
     st.plotly_chart(
