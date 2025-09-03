@@ -30,30 +30,27 @@ def get_coords_x_frame(init, l, angle_deg):
     rad = math.radians(angle_deg)
     return init[0] - l * math.cos(rad), init[1] - l * math.sin(rad)
 
-# ------------- suspension model -------------------
-def suspension_positions(phi_deg, l_lca, l_uca, outer_dist, inner_dist, ang_deg):
+def suspension_positions(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist):
+    """Return (LCA_outer, UCA_outer) for a given LCA angle in deg."""
     LCA_inner = np.array([0.0, 0.0])
     UCA_inner = np.array(get_coords_from_y((0, 0), inner_dist, ang_deg))
-
     LCA_outer = np.array(get_coords_x_frame((0, 0), l_lca, phi_deg))
     sols = circle_intersections(UCA_inner, l_uca, LCA_outer, outer_dist)
     if not sols:
         return None
     UCA_outer = np.array(max(sols, key=lambda p: p[1]))
-    return LCA_outer, UCA_outer
+    return LCA_inner, UCA_inner, LCA_outer, UCA_outer
 
-def tie_rod_deviation(inner_xy, t_on_knuckle, l_lca, l_uca, outer_dist, inner_dist, ang_deg, offset_dist=0, phi_range=np.linspace(-20, 20, 81)):
+def tie_rod_deviation(inner_xy, t_on_knuckle, l_lca, l_uca, inner_dist, ang_deg, outer_dist, offset_dist=0, phi_range=np.linspace(-20, 20, 81)):
     inner_xy = np.asarray(inner_xy, float)
-    lengths = []
-    phis_ok = []
+    lengths, phis_ok = [], []
     for phi in phi_range:
-        pos = suspension_positions(phi, l_lca, l_uca, outer_dist, inner_dist, ang_deg)
+        pos = suspension_positions(phi, l_lca, l_uca, inner_dist, ang_deg, outer_dist)
         if pos is None:
             continue
-        LCA_out, UCA_out = pos
+        LCA_in, UCA_in, LCA_out, UCA_out = pos
         vec = UCA_out - LCA_out
-        vec_perp = np.array([-vec[1], vec[0]])
-        vec_perp = vec_perp / np.linalg.norm(vec_perp)
+        vec_perp = np.array([-vec[1], vec[0]]) / np.linalg.norm(vec)
         outer = LCA_out + t_on_knuckle * vec + offset_dist * vec_perp
         L = np.linalg.norm(outer - inner_xy)
         lengths.append(L)
@@ -62,34 +59,54 @@ def tie_rod_deviation(inner_xy, t_on_knuckle, l_lca, l_uca, outer_dist, inner_di
     L0 = lengths[np.argmin(np.abs(np.array(phis_ok)))]
     return np.array(phis_ok), lengths - L0
 
-# ---------------- streamlit app -------------------
-st.set_page_config(page_title="Bump Steer Calculator", layout="wide")
+# ---------------- Streamlit UI ----------------
+st.set_page_config(page_title="Bump Steer Visualizer", layout="wide")
 st.title("🚗 Bump Steer Calculator & Visualizer")
 
-st.sidebar.header("Suspension Parameters")
-l_lca = st.sidebar.number_input("Lower Control Arm length [mm]", 50.0, 200.0, 87.0, step=0.1)
-l_uca = st.sidebar.number_input("Upper Control Arm length [mm]", 50.0, 200.0, 77.0, step=0.1)
-outer_dist = st.sidebar.number_input("Outer BJ distance [mm]", 50.0, 200.0, 72.0, step=0.1)
-inner_dist = st.sidebar.number_input("Inner pivot distance [mm]", 20.0, 200.0, 58.0, step=0.1)
-ang_deg = st.sidebar.slider("Inner pivot angle [deg]", -15.0, 15.0, 9.8, step=0.1)
+with st.sidebar:
+    st.header("Geometry Inputs")
+    l_lca = st.number_input("Lower Control Arm length [mm]", 50.0, 200.0, 87.0, 1.0)
+    l_uca = st.number_input("Upper Control Arm length [mm]", 50.0, 200.0, 77.0, 1.0)
+    outer_dist = st.number_input("Knuckle distance (BJ-BJ) [mm]", 40.0, 120.0, 72.0, 1.0)
+    inner_dist = st.number_input("Chassis pivot separation [mm]", 30.0, 100.0, 58.0, 1.0)
+    ang_deg = st.slider("Chassis pivot inclination [deg]", -20.0, 20.0, 9.8, 0.1)
+    st.header("Tie-Rod Inputs")
+    inner_x = st.slider("Inner pivot X [mm]", -50.0, 50.0, -3.9, 0.1)
+    inner_y = st.slider("Inner pivot Y [mm]", 0.0, 80.0, 16.5, 0.1)
+    t_pickup = st.slider("Pickup (0=LCA, 1=UCA)", 0.0, 1.0, 0.3, 0.01)
+    offset_dist = st.slider("Offset distance [mm]", -20.0, 20.0, 0.0, 0.1)
+    st.header("Suspension Motion")
+    phi_deg = st.slider("Current LCA angle φ [deg]", -20.0, 20.0, 0.0, 0.5)
 
-st.sidebar.header("Tie-rod Parameters")
-inner_x = st.sidebar.slider("Tie-rod inner X [mm]", -50.0, 50.0, -3.9, step=0.1)
-inner_y = st.sidebar.slider("Tie-rod inner Y [mm]", 0.0, 100.0, 16.5, step=0.1)
-t_pickup = st.sidebar.slider("Tie-rod pickup factor", 0.0, 1.0, 0.296, step=0.001)
-offset_dist = st.sidebar.slider("Offset distance [mm]", -20.0, 20.0, 0.0, step=0.1)
+# ---------------- Geometry diagram ----------------
+geom_fig, ax = plt.subplots(figsize=(6,6))
+pos = suspension_positions(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist)
+if pos:
+    LCA_in, UCA_in, LCA_out, UCA_out = pos
+    # draw arms
+    ax.plot([LCA_in[0], LCA_out[0]], [LCA_in[1], LCA_out[1]], 'o-', label="LCA")
+    ax.plot([UCA_in[0], UCA_out[0]], [UCA_in[1], UCA_out[1]], 'o-', label="UCA")
+    # draw knuckle
+    ax.plot([LCA_out[0], UCA_out[0]], [LCA_out[1], UCA_out[1]], 'o-', label="Knuckle")
+    # draw tie-rod
+    vec = UCA_out - LCA_out
+    vec_perp = np.array([-vec[1], vec[0]]) / np.linalg.norm(vec)
+    outer = LCA_out + t_pickup * vec + offset_dist * vec_perp
+    inner = np.array([inner_x, inner_y])
+    ax.plot([inner[0], outer[0]], [inner[1], outer[1]], 'o-', label="Tie-Rod")
+    ax.set_aspect('equal')
+    ax.grid(True)
+    ax.legend()
+    ax.set_title(f"Suspension Geometry at φ={phi_deg:.1f}°")
+st.pyplot(geom_fig)
 
-phi_vals, deviations = tie_rod_deviation((inner_x, inner_y), t_pickup, l_lca, l_uca, outer_dist, inner_dist, ang_deg, offset_dist)
-
-fig, ax = plt.subplots(figsize=(8,4))
-ax.plot(phi_vals, deviations, lw=2)
-ax.axhline(0, color='k', ls='--')
-ax.set_title("Tie-rod length deviation vs LCA rotation")
-ax.set_xlabel("LCA angle (deg)")
-ax.set_ylabel("Δ Length (mm)")
-ax.grid(True)
-
-st.pyplot(fig)
-
-st.markdown("---")
-st.info("Move the sliders in the sidebar to see how suspension geometry affects bump steer.")
+# ---------------- Deviation plot ----------------
+phi_vals, deviations = tie_rod_deviation((inner_x, inner_y), t_pickup, l_lca, l_uca, inner_dist, ang_deg, outer_dist, offset_dist)
+dev_fig, ax2 = plt.subplots(figsize=(7,4))
+ax2.plot(phi_vals, deviations, lw=2)
+ax2.axhline(0, color='k', ls='--')
+ax2.set_title("Tie-Rod Length Deviation vs LCA Angle")
+ax2.set_xlabel("LCA angle φ [deg]")
+ax2.set_ylabel("Δ Length [mm]")
+ax2.grid(True)
+st.pyplot(dev_fig)
