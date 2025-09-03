@@ -99,6 +99,17 @@ def suspension_plotly(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist,
     return fig
 
 
+def wheel_travel(phi_deg_range, l_lca, l_uca, inner_dist, ang_deg, outer_dist):
+    travels = []
+    for phi in phi_deg_range:
+        pos = suspension_positions(phi, l_lca, l_uca, inner_dist, ang_deg, outer_dist)
+        if pos is None:
+            continue
+        _, _, _, UCA_out = pos
+        travels.append(UCA_out[1])  # Y-axis travel
+    return phi_deg_range[:len(travels)], travels
+
+
 def deviation_plotly(inner_x, inner_y, t_pickup, l_lca, l_uca, inner_dist,
                      ang_deg, outer_dist, offset_dist):
     phi_vals, deviations = tie_rod_deviation(
@@ -157,3 +168,15 @@ with col2:
                          inner_dist, ang_deg, outer_dist, offset_dist),
         use_container_width=True
     )
+
+
+phi_vals, deviations = tie_rod_deviation(...)
+max_dev_idx = np.argmax(np.abs(deviations))
+fig.add_trace(go.Scatter(
+    x=[phi_vals[max_dev_idx]],
+    y=[deviations[max_dev_idx]],
+    mode="markers+text",
+    text=["Max Deviation"],
+    textposition="top right",
+    marker=dict(color="red", size=10)
+))
