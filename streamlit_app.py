@@ -3,6 +3,7 @@ import numpy as np
 import math
 import plotly.graph_objects as go
 
+
 # ---------------- geometry helpers ----------------
 def circle_intersections(p0, r0, p1, r1):
     x0, y0 = p0
@@ -22,13 +23,16 @@ def circle_intersections(p0, r0, p1, r1):
     ry = dx * (h / d)
     return [(xm + rx, ym + ry), (xm - rx, ym - ry)]
 
+
 def get_coords_from_y(init, l, angle_deg):
     rad = math.radians(angle_deg)
     return init[0] - l * math.sin(rad), init[1] + l * math.cos(rad)
 
+
 def get_coords_x_frame(init, l, angle_deg):
     rad = math.radians(angle_deg)
     return init[0] + l * math.cos(rad), init[1] - l * math.sin(rad)
+
 
 def suspension_positions(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist):
     LCA_inner = np.array([0.0, 0.0])
@@ -39,6 +43,7 @@ def suspension_positions(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist)
         return None
     UCA_outer = np.array(max(sols, key=lambda p: p[1]))
     return LCA_inner, UCA_inner, LCA_outer, UCA_outer
+
 
 def tie_rod_deviation(inner_xy, t_on_knuckle, l_lca, l_uca,
                       inner_dist, ang_deg, outer_dist, offset_dist=0,
@@ -59,6 +64,7 @@ def tie_rod_deviation(inner_xy, t_on_knuckle, l_lca, l_uca,
     lengths = np.array(lengths)
     L0 = lengths[np.argmin(np.abs(np.array(phis_ok)))]
     return np.array(phis_ok), lengths - L0
+
 
 # ---------------- plotting helpers ----------------
 def suspension_plotly(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist,
@@ -92,6 +98,7 @@ def suspension_plotly(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist,
     )
     return fig
 
+
 def deviation_plotly(inner_x, inner_y, t_pickup, l_lca, l_uca, inner_dist,
                      ang_deg, outer_dist, offset_dist):
     phi_vals, deviations = tie_rod_deviation(
@@ -111,6 +118,7 @@ def deviation_plotly(inner_x, inner_y, t_pickup, l_lca, l_uca, inner_dist,
     )
     return fig
 
+
 # ---------------- Streamlit UI ----------------
 st.set_page_config(page_title="Bump Steer Visualizer", layout="wide")
 st.title("Bump Steer Calculator & Visualizer")
@@ -118,16 +126,16 @@ st.title("Bump Steer Calculator & Visualizer")
 with st.sidebar:
     st.header("Geometry Inputs")
     l_lca = st.number_input("Lower Control Arm length [mm]", 50.0, 200.0, 87.0, 1.0)
-    l_uca = st.number_input("Upper Control Arm length [mm]", 50.0, 200.0, 77.0, 1.0)
+    l_uca = st.number_input("Upper Control Arm length [mm]", 50.0, 200.0, 74.0, 1.0)
     outer_dist = st.number_input("Knuckle distance (BJ-BJ) [mm]", 40.0, 120.0, 72.0, 1.0)
-    inner_dist = st.number_input("Chassis pivot separation [mm]", 30.0, 100.0, 58.0, 1.0)
-    ang_deg = st.slider("Chassis pivot inclination [deg]", -20.0, 20.0, 9.8, 0.1)
+    inner_dist = st.number_input("Chassis pivot separation [mm]", 30.0, 100.0, 67.0, 1.0)
+    ang_deg = st.slider("Chassis pivot inclination [deg]", -20.0, 20.0, -9.8, 0.1)
 
     st.header("Tie-Rod Inputs")
-    inner_x = st.slider("Inner pivot X [mm]", -50.0, 50.0, -3.9, 0.1)
-    inner_y = st.slider("Inner pivot Y [mm]", 0.0, 80.0, 16.5, 0.1)
-    t_pickup = st.slider("Pickup (0=LCA, 1=UCA)", 0.0, 1.0, 0.3, 0.01)
-    offset_dist = st.slider("Offset distance [mm]", -20.0, 20.0, 0.0, 0.1)
+    inner_x = st.slider("Inner pivot X [mm]", -50.0, 50.0, 4.6, 0.1)
+    inner_y = st.slider("Inner pivot Y [mm]", 0.0, 80.0, 19.3, 0.1)
+    t_pickup = st.slider("Pickup (0=LCA, 1=UCA)", 0.0, 1.0, 0.36, 0.01)
+    offset_dist = st.slider("Offset distance [mm]", -20.0, 20.0, -2.6, 0.1)
 
     st.header("Suspension Motion")
     phi_deg = st.slider("Current LCA angle φ [deg]", -20.0, 20.0, 0.0, 0.5)
