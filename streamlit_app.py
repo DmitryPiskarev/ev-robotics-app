@@ -179,28 +179,33 @@ with st.sidebar:
                    f"Tie-Rod Pickup: {opt_t_pickup:.2f}\n"
                    f"Chassis Inclination: {opt_ang_deg:.2f}\n"
                    f"Offset: {opt_offset:.2f}")
-        inner_x, inner_y, t_pickup, ang_deg, offset_dist = opt_inner_x, opt_inner_y, opt_t_pickup, opt_ang_deg, opt_offset
+    else:
+        # If not optimizing, use current slider values
+        opt_inner_x, opt_inner_y = inner_x, inner_y
+        opt_t_pickup = t_pickup
+        opt_ang_deg = ang_deg
+        opt_offset = offset_dist
 
 # ---------------- Layout with columns ----------------
 col1, col2 = st.columns(2)
 
 with col1:
     st.plotly_chart(
-        suspension_plotly(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist,
-                          inner_x, inner_y, t_pickup, offset_dist),
+        suspension_plotly(phi_deg, l_lca, l_uca, inner_dist, opt_ang_deg, outer_dist,
+                          opt_inner_x, opt_inner_y, opt_t_pickup, opt_offset),
         use_container_width=True
     )
 
 with col2:
     phi_vals, deviations = tie_rod_deviation(
-        inner_xy=(inner_x, inner_y),
-        t_on_knuckle=t_pickup,
+        inner_xy=(opt_inner_x, opt_inner_y),
+        t_on_knuckle=opt_t_pickup,
         l_lca=l_lca,
         l_uca=l_uca,
         inner_dist=inner_dist,
-        ang_deg=ang_deg,
+        ang_deg=opt_ang_deg,
         outer_dist=outer_dist,
-        offset_dist=offset_dist
+        offset_dist=opt_offset
     )
 
     max_idx = np.argmax(np.abs(deviations))
