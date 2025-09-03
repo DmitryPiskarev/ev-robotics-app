@@ -2,6 +2,43 @@ import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 import math
+import plotly.graph_objects as go
+
+def suspension_plotly(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist,
+                      inner_x, inner_y, t_pickup, offset_dist):
+    pos = suspension_positions(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist)
+    if pos is None:
+        return go.Figure()
+
+    LCA_in, UCA_in, LCA_out, UCA_out = pos
+    vec = UCA_out - LCA_out
+    vec_perp = np.array([-vec[1], vec[0]]) / np.linalg.norm(vec)
+    outer = LCA_out + t_pickup * vec + offset_dist * vec_perp
+    inner = np.array([inner_x, inner_y])
+
+    fig = go.Figure()
+
+    # Arms
+    fig.add_trace(go.Scatter(x=[LCA_in[0], LCA_out[0]], y=[LCA_in[1], LCA_out[1]],
+                             mode="lines+markers", name="LCA"))
+    fig.add_trace(go.Scatter(x=[UCA_in[0], UCA_out[0]], y=[UCA_in[1], UCA_out[1]],
+                             mode="lines+markers", name="UCA"))
+    # Knuckle
+    fig.add_trace(go.Scatter(x=[LCA_out[0], UCA_out[0]], y=[LCA_out[1], UCA_out[1]],
+                             mode="lines+markers", name="Knuckle"))
+    # Tie-rod
+    fig.add_trace(go.Scatter(x=[inner[0], outer[0]], y=[inner[1], outer[1]],
+                             mode="lines+markers", name="Tie-Rod"))
+
+    fig.update_layout(
+        title=f"Suspension Geometry at φ={phi_deg:.1f}°",
+        xaxis=dict(scaleanchor="y", showgrid=False, zeroline=False),
+        yaxis=dict(showgrid=False, zeroline=False),
+        margin=dict(l=10, r=10, t=40, b=10),
+        height=400
+    )
+    return fig
+
 
 # ---------------- geometry helpers ----------------
 def circle_intersections(p0, r0, p1, r1):
@@ -79,6 +116,11 @@ with st.sidebar:
     phi_deg = st.slider("Current LCA angle φ [deg]", -20.0, 20.0, 0.0, 0.5)
 
 # ---------------- Geometry diagram ----------------
+st.plotly_chart(
+    suspension_plotly(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist,
+                      inner_x, inner_y, t_pickup, offset_dist),
+    use_container_width=True
+)
 geom_fig, ax = plt.subplots(figsize=(6,6))
 pos = suspension_positions(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist)
 if pos:
