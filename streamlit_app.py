@@ -67,7 +67,7 @@ def tie_rod_deviation(inner_xy, t_on_knuckle, l_lca, l_uca,
 
 # ---------------- plotting helpers ----------------
 def suspension_plotly(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist,
-                      inner_x, inner_y, t_pickup, offset_dist):
+                      inner_x, inner_y, t_pickup, offset_dist, height=600):
     pos = suspension_positions(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist)
     if pos is None: return go.Figure()
     LCA_in, UCA_in, LCA_out, UCA_out = pos
@@ -87,8 +87,10 @@ def suspension_plotly(phi_deg, l_lca, l_uca, inner_dist, ang_deg, outer_dist,
     fig.update_layout(title=f"Suspension Geometry at φ={phi_deg:.1f}°",
                       xaxis=dict(range=[-100, 200], scaleanchor="y", showgrid=False, zeroline=False),
                       yaxis=dict(range=[-50, 150], showgrid=False, zeroline=False),
-                      margin=dict(l=10, r=10, t=40, b=10), height=400)
+                      margin=dict(l=10, r=10, t=40, b=10),
+                      height=height)
     return fig
+
 
 
 def wheel_travel(phi_deg_range, l_lca, l_uca, inner_dist, ang_deg, outer_dist):
