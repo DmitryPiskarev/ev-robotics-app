@@ -30,3 +30,13 @@ def tie_rod_deviation(inner_xy, t_on_knuckle, l_lca, l_uca,
     lengths = np.array(lengths)
     L0 = lengths[np.argmin(np.abs(np.array(phis_ok)))]
     return np.array(phis_ok), lengths - L0
+
+
+def wheel_travel(phi_deg_range, l_lca, l_uca, inner_dist, ang_deg, outer_dist):
+    travels = []
+    for phi in phi_deg_range:
+        pos = suspension_positions(phi, l_lca, l_uca, inner_dist, ang_deg, outer_dist)
+        if pos is None: continue
+        _, _, _, UCA_out = pos
+        travels.append(UCA_out[1])
+    return phi_deg_range[:len(travels)], travels

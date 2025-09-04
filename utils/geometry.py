@@ -1,5 +1,4 @@
 import math
-from .main import suspension_positions
 
 
 # ---------------- geometry helpers ----------------
@@ -30,12 +29,3 @@ def get_coords_x_frame(init, l, angle_deg):
     rad = math.radians(angle_deg)
     return init[0] + l * math.cos(rad), init[1] - l * math.sin(rad)
 
-
-def wheel_travel(phi_deg_range, l_lca, l_uca, inner_dist, ang_deg, outer_dist):
-    travels = []
-    for phi in phi_deg_range:
-        pos = suspension_positions(phi, l_lca, l_uca, inner_dist, ang_deg, outer_dist)
-        if pos is None: continue
-        _, _, _, UCA_out = pos
-        travels.append(UCA_out[1])
-    return phi_deg_range[:len(travels)], travels
