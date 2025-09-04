@@ -1,5 +1,5 @@
 import math
-from utils.main import suspension_positions
+from main import suspension_positions
 
 
 # ---------------- geometry helpers ----------------
