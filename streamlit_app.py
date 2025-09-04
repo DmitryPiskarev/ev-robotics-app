@@ -2,8 +2,7 @@ import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
 import pandas as pd
-from utils.optimizer import optimize_suspension
-from utils.main import tie_rod_deviation, suspension_positions, wheel_travel
+from utils.main import tie_rod_deviation, suspension_positions, wheel_travel, optimize_suspension
 
 
 # ---------------- plotting helpers ----------------
